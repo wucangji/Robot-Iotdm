@@ -15,3 +15,4 @@ if already installed the old version of paho-mqtt, upgrade with
 The script will subscribe to the topic "/tdf/test" of "168.128.108.105",
 if the topic update, the script will grab the json data "deviceName" from the message payload, then create the <container> under the local IOTDM CSE "InCSE" with the name same with "deviceName"(ignore this step if the container already exists), then create a <ContentInstance> with the "con" attribute contains the whole json payload from the MQTT topic(String format).
 
+The parent container will be stored in the path you enter. For example, if you enter "InCSE1/MQ/TT", then, parentcontainer "truck" will be created, its path is "InCSE1/MQ/TT/truck", all the <ContentInstance> will be stored under "truck". 

@@ -14,24 +14,44 @@ rt_contentInstance = 4
 
 
 
-def create_container(container_name):
+def create_container(parent, container_name):
 	attr = '"rn":%s' %(container_name)
-	container_resp = connect.create("InCSE1", rt_container, attr)
+	container_resp = connect.create(parent, rt_container, attr)
 	# print container_resp.text
 
-def create_cin(path, payload):
-	payload1 = json.dumps(payload)
-	attr = '"con":%s' %(payload1)
-	conIn_resp = connect.create(path, rt_contentInstance, attr)
-	# print conIn_resp.text
+def create_cin(parentpath, payload):
+	attr = '"con":%s' %(payload)
+	payloadjson = json.loads(payload)
+	# # print(payload['deviceName'])
+	# create_container(payload['deviceName'])
+	path = parentpath + "/" + payloadjson['deviceName']
+	connect.create(path, rt_contentInstance, attr)
+	if criotdm.status_code(connect.response) > 299:
+		create_container(parentpath, payloadjson['deviceName'])
+		connect.create(path, rt_contentInstance, attr)
 
 def on_message_print(client, userdata, message):
 	print("%s %s" % (message.topic, message.payload))
-	payload = json.loads(message.payload)
-	# print(payload['deviceName'])
-	create_container(payload['deviceName'])
-	path = "InCSE1/" + payload['deviceName']
-	create_cin(path, message.payload)
+	create_cin(inputPath, message.payload)
 
-connect = criotdm.connect_to_iotdm(httphost, httpuser, httppass, "http")
-subscribe.callback(on_message_print, "/tdf/test", hostname="168.128.108.105")
+def getCSEName(path):
+	return path.split('/')[0]
+
+def createContainerPath(path):
+	pathArray = path.split('/')
+	print pathArray
+	parent = CSEName
+	for resource in pathArray:
+		create_container(parent, resource)
+		parent = parent + "/" + resource
+
+inputHost = raw_input("Please enter the hostname of the MQTT broker (like 168.128.108.105):")
+inputPort = raw_input("Please enter the port number (like 1883):")
+inputTopic = raw_input("Please enter the topic you want to subscribe (like /tdf/test):")
+inputPath = raw_input("Please enter the path of IOTDM to store the data(like InCSE1/MQTTMessage):")
+
+CSEName = getCSEName(inputPath)
+connect = ciotdm.connect(httphost, base=CSEName, auth=(httpuser, httppass), protocol="http")
+createContainerPath(inputPath.lstrip(CSEName+"/"))
+subscribe.callback(on_message_print, topics = inputTopic, hostname = inputHost, port = inputPort)
+# subscribe.callback(on_message_print, topics = "/tdf/test", hostname = "168.128.108.105", port = 1883)

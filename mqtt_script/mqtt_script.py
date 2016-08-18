@@ -22,10 +22,10 @@ def create_container(parent, container_name):
 def create_cin(parentpath, payload):
 	attr = '"con":%s' %(payload)
 	payloadjson = json.loads(payload)
-	# # print(payload['deviceName'])
-	# create_container(payload['deviceName'])
+	print(payloadjson['deviceName'])
 	path = parentpath + "/" + payloadjson['deviceName']
 	connect.create(path, rt_contentInstance, attr)
+	print criotdm.text(connect.response)
 	if criotdm.status_code(connect.response) > 299:
 		create_container(parentpath, payloadjson['deviceName'])
 		connect.create(path, rt_contentInstance, attr)

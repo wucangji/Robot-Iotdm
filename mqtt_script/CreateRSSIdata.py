@@ -14,12 +14,12 @@ rt_contentInstance = 4
 rssipayload = '''
 {
   "GpsThread": {
-    "altitude": 227,
-    "gps_qual": 1,
+    "altitude": %s,
+    "gps_qual": %s,
     "altitude_units": "M",
     "geo_sep_units": "M",
-    "true_course": "246.40",
-    "lon": "00505.0705",
+    "true_course": "%s",
+    "lon": "%s",
     "type": "gpsData",
     "num_sats": "09",
     "version": "0.0.9",
@@ -33,7 +33,7 @@ rssipayload = '''
     "lon_dir": "E",
     "mag_variation": "",
     "spd_over_grnd": "0.00",
-    "lat": "4414.5932",
+    "lat": "%s",
     "status": "A",
     "timestamp": 1468497589.99156
   },
@@ -68,28 +68,44 @@ rssipayload = '''
       "timestamp": "2016-07-12 12:56:30.362Z"
     }
   },
-  "deviceName": "truck",
+  "deviceName": "wuData",
   "version": "0.0.9"
 }
 '''
 
+fakelatStart = 4657
+fakelngSatrt = 55
+global fakelat
+global fakelng
+fakelat = fakelatStart
+fakelng = fakelngSatrt
 def create_container(parent, container_name):
-	attr = '"rn":%s, "mni":100' %(container_name)
+	attr = '"rn":%s, "mni":3' %(container_name)
 	container_resp = connect.create(parent, rt_container, attr)
 	# print container_resp.text
 
 def create_cin():
-	threading.Timer(5.0,create_cin).start()
-	payload = rssipayload % (randint(0,9), randint(0,19), randint(10,19), randint(20,29), randint(0,29), randint(0,19))
-	attr = '"con":%s' %(payload)
-	print payload
-	payloadjson = json.loads(payload)
-	path = inputPath + "/" + payloadjson['deviceName']
-	connect.create(path, rt_contentInstance, attr)
-	# print criotdm.text(connect.response)
-	if criotdm.status_code(connect.response) > 299:
-		create_container(inputPath, payloadjson['deviceName'])
-		connect.create(path, rt_contentInstance, attr)
+    threading.Timer(5.0,create_cin).start()
+    fakeAltitude = randint(200, 250)
+    fakeGPSquality = randint(1,3)
+    fakeTruecourse = randint(200,300)
+    global fakelat
+    global fakelng
+    if fakelng > 550:
+        fakelat = fakelatStart
+        fakelng = fakelngSatrt
+    fakelng = fakelng + 0.2 + randint(0,5) * 0.01
+    fakelat = fakelat + randint(-5, 5) * 0.02
+    payload = rssipayload % (fakeAltitude, fakeGPSquality, fakeTruecourse, fakelng, fakelat, randint(0,9), randint(0,19), randint(10,19), randint(20,29), randint(0,29), randint(0,19))
+    attr = '"con":%s' %(payload)
+    print payload
+    payloadjson = json.loads(payload)
+    path = inputPath + "/" + payloadjson['deviceName']
+    connect.create(path, rt_contentInstance, attr)
+    print criotdm.text(connect.response)
+    if criotdm.status_code(connect.response) > 299:
+        create_container(inputPath, payloadjson['deviceName'])
+        connect.create(path, rt_contentInstance, attr)
 
 
 def getCSEName(path):

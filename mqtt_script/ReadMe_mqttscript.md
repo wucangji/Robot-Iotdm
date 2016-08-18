@@ -6,6 +6,9 @@ May need to upgrade pip
 if already installed the old version of paho-mqtt, upgrade with  
 `sudo pip install paho-mqtt --upgrade`
 
+install requests library
+`pip install requests`
+
 2. put the script under the vm that runs iotdm.
 3. run the script file "mqtt_script.py" with  
 `python mqtt_script.py`
